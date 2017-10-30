@@ -27,13 +27,23 @@ class ResCountry(models.Model):
     def _compute_codes(self):
         for country in self:
             try:
-                c = pycountry.countries.get(alpha2=country.code)
-                country.code_alpha3 = c.alpha3
+                try:
+                    c = pycountry.countries.get(alpha_2=country.code)
+                except KeyError:
+                    c = pycountry.countries.get(alpha2=country.code)
+                country.code_alpha3 = getattr(c, 'alpha_3',
+                                              getattr(c, 'alpha3', False))
                 country.code_numeric = c.numeric
             except KeyError:
                 try:
-                    c = pycountry.historic_countries.get(alpha2=country.code)
-                    country.code_alpha3 = c.alpha3
+                    try:
+                        c = pycountry.historic_countries.get(
+                            alpha_2=country.code)
+                    except KeyError:
+                        c = pycountry.historic_countries.get(
+                            alpha2=country.code)
+                    country.code_alpha3 = getattr(c, 'alpha_3',
+                                                  getattr(c, 'alpha3', False))
                     country.code_numeric = c.numeric
                 except KeyError:
                     country.code_alpha3 = False
